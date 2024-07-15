@@ -29,6 +29,7 @@ func main() {
 	initcmd()
 	cmd_hist := newHistory()
 	signal.Ignore(os.Interrupt)
+	fmt.Printf("Have no clue how Shell works. Try entering 'help'")
 	for {
 		fmt.Fprint(os.Stdout, "$ ")
 		input, err := bufio.NewReader(os.Stdin).ReadString('\n')
@@ -45,6 +46,10 @@ func main() {
 			args := inputs[1:]
 			if inputs[0] == "history" {
 				history(cmd_hist)
+				continue
+			}
+			if inputs[0] == "help" {
+				help()
 				continue
 			}
 			cmdfc, avail := builtin[inputs[0]]
@@ -76,6 +81,16 @@ func initcmd() {
 	builtin["type"] = typecmd
 	builtin["pwd"] = pwd
 	builtin["cd"] = cd
+}
+
+func help() {
+	help_str := "Usage of shell to run commands: \n" +
+		"    $ command [Arguments]\n" +
+		"\n Common Commands: " +
+		"\n   1. pwd\n   2. ls\n   3. echo\n   4. cd\n   5. cat\n   6. history\n   7. exit\n   8. type\n   9. wc" +
+		"\n   10. sort\n   11. uniq\n  and many more..\n" +
+		"\n To learn more about the command try '--help' flag as argument\n   Eg: ls --help\n"
+	fmt.Println(help_str)
 }
 
 func newHistory() *Hist {
@@ -133,10 +148,24 @@ func pipedCommand(input string) {
 }
 
 func cd(args []string) {
-	if len(args) != 1 {
+	if len(args) > 1 {
 		fmt.Fprintf(os.Stdout, "Invalid number of Arguments.\n") // add a help
 		return
 	} else {
+		if len(args) == 0 {
+			return
+		}
+		if args[0] == "--help" {
+			help := "cd: Change the shell working directory." +
+				"\n  Usage: cd [DIR]" +
+				"\n  Change the current directory to DIR. The default(~) DIR is the value of the HOME shell variable." +
+				"\n  A null directory name is the same as the current directory. If DIR begins with a slash (/), then DIR is considered to be absolute " +
+				"\n  path." +
+				"\n  '..' is processed by removing the immediately previous pathname component back to a slash or the beginning of DIR.\n" +
+				"\n  Exit Status: Returns 0 if the directory is changed, non-zero otherwise."
+			fmt.Println(help)
+			return
+		}
 		p := path.Clean(args[0])
 		if p == "~" {
 			p = os.Getenv("HOME")
